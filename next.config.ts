@@ -17,11 +17,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  outputFileTracingRoot: path.resolve(__dirname, '../../'),
-    experimental: {
-      allowedDevOrigins: ['192.168.1.15:3000', 'localhost:3000', '0.0.0.0:3000'],
-    },
-    typescript: {
+  // Removed outputFileTracingRoot and experimental.allowedDevOrigins as they break Vercel deployments
+  typescript: {
     ignoreBuildErrors: true,
   },
   eslint: {

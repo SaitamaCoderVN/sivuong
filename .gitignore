@@ -44,3 +44,4 @@ certificates
 .env.local
 .env*
 .orchids
+bun.lock

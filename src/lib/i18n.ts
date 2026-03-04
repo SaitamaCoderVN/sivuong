@@ -122,6 +122,8 @@ export const dictionary = {
     authDesc: "Enter your email to start.",
     continueWithGoogle: "Continue with Google",
     orContinueWith: "Or continue with",
+    muteSound: "Mute sound",
+    enableSound: "Enable sound",
 
     // Messages
     identityRequired: "Sign in to save progress.",
@@ -259,6 +261,8 @@ export const dictionary = {
     authDesc: "Nhập email của bạn.",
     continueWithGoogle: "Tiếp tục với Google",
     orContinueWith: "Hoặc tiếp tục với",
+    muteSound: "Tắt âm báo",
+    enableSound: "Bật âm báo",
 
     // Messages
     identityRequired: "Đăng nhập để lưu tiến độ.",

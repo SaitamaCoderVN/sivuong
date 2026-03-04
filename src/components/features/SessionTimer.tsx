@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, CheckCircle } from 'lucide-react';
+import { Play, CheckCircle, Volume2, VolumeX } from 'lucide-react';
+import { playTickSound, playBellSound } from '@/lib/audio';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export default function SessionTimer({ onComplete }: SessionTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isActive, setIsActive] = useState<boolean>(false);
   const [isFinished, setIsFinished] = useState<boolean>(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const startTimer = () => {
@@ -42,6 +44,9 @@ export default function SessionTimer({ onComplete }: SessionTimerProps) {
 
   useEffect(() => {
     if (isActive && timeLeft > 0) {
+      if (isSoundEnabled) {
+        playTickSound();
+      }
       timerRef.current = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
@@ -49,13 +54,16 @@ export default function SessionTimer({ onComplete }: SessionTimerProps) {
       setIsActive(false);
       setIsFinished(true);
       setIsFocusMode(false);
+      if (isSoundEnabled) {
+        playBellSound();
+      }
       if (timerRef.current) clearInterval(timerRef.current);
     }
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isActive, timeLeft, setIsFocusMode]);
+  }, [isActive, timeLeft, setIsFocusMode, isSoundEnabled]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -83,6 +91,13 @@ export default function SessionTimer({ onComplete }: SessionTimerProps) {
         "flex flex-col items-center relative transition-all duration-1000",
         isFocusMode ? "py-8 md:py-20" : "py-10 md:py-28 px-6 md:px-10"
       )}>
+        <button 
+          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+          className="absolute top-6 right-6 md:top-8 md:right-8 text-muted-foreground hover:text-foreground transition-all z-50 p-2.5 bg-muted/20 hover:bg-muted/40 rounded-full"
+          title={isSoundEnabled ? t('muteSound') || "Mute sound" : t('enableSound') || "Enable sound"}
+        >
+          {isSoundEnabled ? <Volume2 className="h-4 w-4 md:h-5 md:w-5" /> : <VolumeX className="h-4 w-4 md:h-5 md:w-5" />}
+        </button>
           <AnimatePresence mode="wait">
             {!isActive && !isFinished ? (
               <motion.div
