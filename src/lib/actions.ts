@@ -87,7 +87,7 @@ export async function completeSessionAction(minutes: number, lastRewardId: numbe
       details: error.details,
       hint: error.hint
     })
-    
+
     // Return structured error for the client to handle
     return {
       error: error.message || "An unknown error occurred during session completion",
@@ -109,7 +109,7 @@ export async function updateHistoryWithImageAction(historyId: string, imageUrl: 
     .eq('user_id', user.id)
 
   if (updateError) throw updateError
-  
+
   return { success: true }
 }
 
@@ -118,22 +118,32 @@ export async function getUserStatsAction(): Promise<UserStats> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { totalPoints: 0, totalSessions: 0 }
 
-  // Use backend aggregation for truth
-  const { data: historyData, error: historyError } = await supabase
-    .from('reward_history')
-    .select('points_earned')
-    .eq('user_id', user.id)
+  // Gọi lên Profile, nếu Profile chưa được tự động tạo bởi Trigger, ta phải tạo bù!
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('total_points, total_sessions')
+    .eq('id', user.id)
+    .single()
 
-  if (historyError) return { totalPoints: 0, totalSessions: 0 }
+  // Bắt lỗi PGRST116 (0 rows returned - Tức là không tìm thấy Profiler của User này trong DB)
+  if (profileError && profileError.code === 'PGRST116') {
+    // Chủ động tạo mới Profile trên DB luôn
+    await supabase.from('profiles').insert({
+      id: user.id,
+      email: user.email ?? '',
+      total_points: 0,
+      total_sessions: 0
+    });
+    return { totalPoints: 0, totalSessions: 0 };
+  }
 
-  const totalPoints = historyData.reduce((acc, curr) => acc + (curr.points_earned || 0), 0)
-  const totalSessions = historyData.length
-
+  // Nếu đã có sẵn Profile
   return {
-    totalPoints,
-    totalSessions
+    totalPoints: profile?.total_points ?? 0,
+    totalSessions: profile?.total_sessions ?? 0
   }
 }
+
 
 export async function getRewardHistoryAction(): Promise<HistoryEntry[]> {
   const supabase = await createClient()
